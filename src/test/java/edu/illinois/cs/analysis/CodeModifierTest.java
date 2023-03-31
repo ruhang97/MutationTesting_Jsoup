@@ -109,4 +109,25 @@ public class CodeModifierTest
 		return false;
 	}
 
+	/*
+     * Find number of failure in a message
+     * Return:
+     *      >= 0 if found Failure info
+     *      == -1 if no Failure info
+     * e.g. msg = "Failures: 4 success: 8"; return 4
+     * e.g. msg = "success: 8"; return -1
+     */
+	private static int findFailNum(String msg) {
+        Pattern pattern = Pattern.compile("Failures: (\\d+)");
+        Matcher matcher = pattern.matcher(msg);
+        while (matcher.find()) {
+            String numStr = matcher.group().split("\\s+")[1];
+            Integer failNum = Integer.parseInt(numStr);
+            // System.out.println(matcher.group());
+            // System.out.println(failNum);
+            return failNum;
+        }
+        return -1;
+    }
+
 }
