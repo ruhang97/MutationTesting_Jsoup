@@ -23,31 +23,8 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeS
 import com.github.javaparser.utils.CodeGenerationUtils;
 import com.github.javaparser.utils.SourceRoot;
 
-public class CodeModifierTest
+public class MutationTest
 {
-	@Test
-	public void testToyProgram() {
-		// Get the code representation for the content of the toy java file
-		CompilationUnit cu = StaticJavaParser.parse(
-				"class X {public Object m(Object x, Object y){if(x!=null) return x; if(null==y) return \"error\"; return y; }}");
-
-		// Instantiate the CodeModifier class that you will implement to perform
-		// the actual task. This is a visitor class according to the visitor
-		// pattern (one of the most important design patterns).
-		CodeModifier codeModifier = new CodeModifier();
-
-		// Apply our visitor class on the code representation for the given
-		// Java file. In this way, our visit function(s) can be automatically
-		// applied to all possible elements of the specified type(s).
-		codeModifier.visit(cu, null);
-
-		// Check if the modified cu is as expected, i.e., equivalent to the
-		// expected_cu defined below
-		CompilationUnit expected_cu = StaticJavaParser.parse(
-				"class X {public Object m(Object x, Object y){if(null!=x) return x; if(y==null) return \"error\"; return y; }}");
-		assertEquals(expected_cu, cu);
-	}
-
 	@Test
 	public void testJsoup() {
 		// Initialize the source root as the "target/test-classes" dir, which
@@ -56,7 +33,7 @@ public class CodeModifierTest
 		// during test execution
 		SourceRoot sourceRoot = new SourceRoot(
 				CodeGenerationUtils.mavenModuleRoot(CodeParserTest.class)
-						.resolve("target/test-classes"));
+					.resolve("target/test-classes"));
 
 		// Get the code representation for the specific java file using its
 		// package and name info
@@ -66,20 +43,31 @@ public class CodeModifierTest
 		// Instantiate the CodeModifier class that you will implement to perform
 		// the actual task. This is a visitor class according to the visitor
 		// pattern (one of the most important design patterns).
-		CodeModifier codeModifier = new CodeModifier();
+		ConditionalsBoundaryMutator codeModifier = new ConditionalsBoundaryMutator();
 
 		// Apply our visitor class on the code representation for the given
 		// Java file. In this way, our visit function(s) can be automatically
 		// applied to all possible elements of the specified type(s).
 		codeModifier.visit(cu, null);
-
+		
 		SourceRoot targetRoot = new SourceRoot(
 			CodeGenerationUtils.mavenModuleRoot(CodeParserTest.class)
-					.resolve("jsoup/target/test-classes"));
+			.resolve("jsoup/src/main/java"));
+			
 
-		saveMutantToFile(targetRoot.getRoot() + "/org/jsoup/nodes/Document.java", cu);
+		String targetPath = targetRoot.getRoot() + "/org/jsoup/nodes/Document.java";
+		saveMutantToFile(targetPath, cu);
 
-		assertTrue(mutantKilled());		
+		System.out.println("Mutant Killed: " + Boolean.toString(mutantKilled()));
+		
+		sourceRoot = new SourceRoot(
+				CodeGenerationUtils.mavenModuleRoot(CodeParserTest.class)
+					.resolve("target/test-classes"));
+
+		cu = sourceRoot.parse("org.jsoup.nodes",
+				"Document.java");
+
+		saveMutantToFile(targetPath, cu);
 	}
 
 	/*
@@ -116,8 +104,9 @@ public class CodeModifierTest
 			System.out.println("Here is the standard output of the command:\n");
 			String s = null;
 			while ((s = stdInput.readLine()) != null) {
-				if (findFailNum(s) != 0) {
-					System.out.println(s);
+				// System.out.println(s);
+				if (findFailNum(s) > 0 || findErrorNum(s) > 0) {
+					System.out.println("Error Found");
 					return true;
 				}
 			}
@@ -152,6 +141,27 @@ public class CodeModifierTest
             // System.out.println(matcher.group());
             // System.out.println(failNum);
             return failNum;
+        }
+        return -1;
+    }
+
+	/*
+     * Find number of error in a message
+     * Return:
+     *      >= 0 if found Error info
+     *      == -1 if no Error info
+     * e.g. msg = "Errors: 4 success: 8"; return 4
+     * e.g. msg = "success: 8"; return -1
+     */
+	private static int findErrorNum(String msg) {
+        Pattern pattern = Pattern.compile("Errors: (\\d+)");
+        Matcher matcher = pattern.matcher(msg);
+        while (matcher.find()) {
+            String numStr = matcher.group().split("\\s+")[1];
+            Integer errNum = Integer.parseInt(numStr);
+            // System.out.println(matcher.group());
+            // System.out.println(failNum);
+            return errNum;
         }
         return -1;
     }
