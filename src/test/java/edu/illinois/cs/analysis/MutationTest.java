@@ -22,11 +22,30 @@ import com.github.javaparser.resolution.TypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.utils.CodeGenerationUtils;
 import com.github.javaparser.utils.SourceRoot;
+import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
 public class MutationTest
 {
 	@Test
 	public void testJsoup() {
+		// Instantiate the CodeModifier class that you will implement to perform
+		// the actual task. This is a visitor class according to the visitor
+		// pattern (one of the most important design patterns).
+		ConditionalsBoundaryMutator codeModifier = new ConditionalsBoundaryMutator();
+		boolean killed = modifyAndTryToKill(codeModifier, "nodes", "Document.java");
+		assertTrue(killed);
+	}
+
+	/*
+	 * Use the modifier to create mutant, run tests on mutant
+	 * Input: 
+	 * 		module = "nodes" or "parser";		
+	 * 		targetFile = "Document.java"
+	 * Return:
+	 * 		true if mutant killed
+	 * 		false if not killed
+	 */
+	private boolean modifyAndTryToKill(VoidVisitorAdapter codeModifier, String module, String targetFile) {
 		// Initialize the source root as the "target/test-classes" dir, which
 		// includes the test resource information (i.e., the source code info
 		// for Jsoup for this assignment) copied from src/test/resources
@@ -37,13 +56,9 @@ public class MutationTest
 
 		// Get the code representation for the specific java file using its
 		// package and name info
-		CompilationUnit cu = sourceRoot.parse("org.jsoup.nodes",
-				"Document.java");
-
-		// Instantiate the CodeModifier class that you will implement to perform
-		// the actual task. This is a visitor class according to the visitor
-		// pattern (one of the most important design patterns).
-		ConditionalsBoundaryMutator codeModifier = new ConditionalsBoundaryMutator();
+		// CompilationUnit cu = sourceRoot.parse("org.jsoup.nodes",
+		CompilationUnit cu = sourceRoot.parse("org.jsoup." + module,
+				targetFile);
 
 		// Apply our visitor class on the code representation for the given
 		// Java file. In this way, our visit function(s) can be automatically
@@ -52,22 +67,39 @@ public class MutationTest
 		
 		SourceRoot targetRoot = new SourceRoot(
 			CodeGenerationUtils.mavenModuleRoot(CodeParserTest.class)
-			.resolve("jsoup/src/main/java"));
+			// .resolve("jsoup/src/main/java"));
+			.resolve("jsoup/src/main/java/org/jsoup"));		// add module
 			
 
-		String targetPath = targetRoot.getRoot() + "/org/jsoup/nodes/Document.java";
+		// String targetPath = targetRoot.getRoot() + "/org/jsoup/nodes/" + targetFile;
+		String targetPath = targetRoot.getRoot() + "/" + module + "/" + targetFile;	// add module
 		saveMutantToFile(targetPath, cu);
 
-		System.out.println("Mutant Killed: " + Boolean.toString(mutantKilled()));
+		boolean killed = mutantKilled();
+		System.out.println("Mutant Killed: " + Boolean.toString(killed));
 		
 		sourceRoot = new SourceRoot(
 				CodeGenerationUtils.mavenModuleRoot(CodeParserTest.class)
 					.resolve("target/test-classes"));
 
-		cu = sourceRoot.parse("org.jsoup.nodes",
-				"Document.java");
+
+		// Approach 1: Overwrite modified file
+		// cu = sourceRoot.parse("org.jsoup.nodes",
+		cu = sourceRoot.parse("org.jsoup." + module,
+				targetFile);
 
 		saveMutantToFile(targetPath, cu);
+
+		// Approach 2: Copy from back code
+		try {
+			Runtime rt = Runtime.getRuntime();
+			String[] commands = {"/bin/sh", "-c", "echo 1"};	// TODO: copy from backup
+			Process proc = rt.exec(commands);
+		} catch (IOException e) {
+			System.out.println("[Error] file copy failed");
+			System.out.println(e);
+		}
+		return killed;
 	}
 
 	/*
@@ -104,9 +136,13 @@ public class MutationTest
 			System.out.println("Here is the standard output of the command:\n");
 			String s = null;
 			while ((s = stdInput.readLine()) != null) {
-				// System.out.println(s);
-				if (findFailNum(s) > 0 || findErrorNum(s) > 0) {
-					System.out.println("Error Found");
+				System.out.println(s);
+				if (findFailNum(s) > 0) {
+					System.out.println("********** Failure Found **********");
+					return true;
+				}
+				if (findErrorNum(s) > 0) {
+					System.out.println("********** Error Found **********");
 					return true;
 				}
 			}
