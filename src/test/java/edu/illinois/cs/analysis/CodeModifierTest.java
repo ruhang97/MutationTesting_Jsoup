@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
@@ -69,11 +70,33 @@ public class CodeModifierTest
 		// applied to all possible elements of the specified type(s).
 		codeModifier.visit(cu, null);
 
-		// Check if the modified cu is as expected, i.e., equivalent to the
-		// expected_cu defined below		
+		SourceRoot targetRoot = new SourceRoot(
+			CodeGenerationUtils.mavenModuleRoot(CodeParserTest.class)
+					.resolve("jsoup/target/test-classes"));
+
+		saveMutantToFile(targetRoot.getRoot() + "/org/jsoup/nodes/Document.java", cu);
+
 		CompilationUnit expected_cu = sourceRoot.parse("org.jsoup.nodes",
 				"Document-Modified.java");
 		assertEquals(expected_cu, cu);		
+	}
+
+	/*
+     * Save the generated to the given path
+     * Return:
+     *      true if saved successfully
+     *      false if failed to save
+     */
+	private boolean saveMutantToFile(String path, CompilationUnit cu) {
+		try {
+			FileWriter writer = new FileWriter(path);
+            writer.write(cu.toString());
+			writer.close();
+			return true;
+        } catch (IOException e) {
+			System.out.println("IOException");
+			return false;
+		}
 	}
 
 	private boolean mutantKilled(CompilationUnit cu) {
