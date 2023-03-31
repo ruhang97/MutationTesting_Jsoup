@@ -1,6 +1,7 @@
 package edu.illinois.cs.analysis;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -9,6 +10,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -76,9 +79,7 @@ public class CodeModifierTest
 
 		saveMutantToFile(targetRoot.getRoot() + "/org/jsoup/nodes/Document.java", cu);
 
-		CompilationUnit expected_cu = sourceRoot.parse("org.jsoup.nodes",
-				"Document-Modified.java");
-		assertEquals(expected_cu, cu);		
+		assertTrue(mutantKilled());		
 	}
 
 	/*
@@ -99,7 +100,7 @@ public class CodeModifierTest
 		}
 	}
 
-	private boolean mutantKilled(CompilationUnit cu) {
+	private boolean mutantKilled() {
 		Runtime rt = Runtime.getRuntime();
 		String[] commands = {"/bin/sh", "-c", "cd jsoup && mvn test"};
 		try {
@@ -115,8 +116,10 @@ public class CodeModifierTest
 			System.out.println("Here is the standard output of the command:\n");
 			String s = null;
 			while ((s = stdInput.readLine()) != null) {
-				System.out.println(s);
-				// TODO: check failure and return true
+				if (findFailNum(s) != 0) {
+					System.out.println(s);
+					return true;
+				}
 			}
 			
 			// Read any errors from the attempted command
