@@ -26,14 +26,43 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
 public class MutationTest
 {
+	public enum Mutator {
+		TRUE_RETURNS(new TrueReturnsMutator()),
+		// FalseReturnsMutator(),
+		// EmptyReturnsMutator(),
+		CONDITIONALS_BOUNDARY(new ConditionalsBoundaryMutator());
+
+		VoidVisitorAdapter modifier;
+
+		private Mutator(VoidVisitorAdapter modifier) {
+			this.modifier = modifier;
+		}
+		public boolean exec(String module, String targetFile) {
+			return modifyAndTryToKill(this.modifier, module, targetFile);
+		}
+
+	}
+
 	@Test
 	public void testJsoup() {
 		// Instantiate the CodeModifier class that you will implement to perform
 		// the actual task. This is a visitor class according to the visitor
 		// pattern (one of the most important design patterns).
-		VoidVisitorAdapter codeModifier = new FalseReturnsMutator();
-		boolean killed = modifyAndTryToKill(codeModifier, "nodes", "Document.java");
-		assertTrue(killed);
+
+		// VoidVisitorAdapter codeModifier = new EmptyReturnsMutator();
+		// boolean killed = modifyAndTryToKill(codeModifier, "nodes", "Document.java");
+		int count = 0;
+		int countKill = 0;
+		for (Mutator mutator : Mutator.values()) {
+			System.out.println("Running mutator " + mutator.toString());
+			boolean killed = mutator.exec("nodes", "Document.java");
+			if (killed) countKill++;
+			count++;
+		}
+		double score = countKill / count * 100.0;
+		System.out.println("\n\n******************mutation score = " + 
+							score + "******************");
+		// assertTrue(killed);
 	}
 
 	/*
@@ -45,7 +74,7 @@ public class MutationTest
 	 * 		true if mutant killed
 	 * 		false if not killed
 	 */
-	private boolean modifyAndTryToKill(VoidVisitorAdapter codeModifier, String module, String targetFile) {
+	private static boolean modifyAndTryToKill(VoidVisitorAdapter codeModifier, String module, String targetFile) {
 		// Initialize the source root as the "target/test-classes" dir, which
 		// includes the test resource information (i.e., the source code info
 		// for Jsoup for this assignment) copied from src/test/resources
@@ -108,7 +137,7 @@ public class MutationTest
      *      true if saved successfully
      *      false if failed to save
      */
-	private boolean saveMutantToFile(String path, CompilationUnit cu) {
+	private static boolean saveMutantToFile(String path, CompilationUnit cu) {
 		try {
 			FileWriter writer = new FileWriter(path);
             writer.write(cu.toString());
@@ -120,7 +149,7 @@ public class MutationTest
 		}
 	}
 
-	private boolean mutantKilled() {
+	private static boolean mutantKilled() {
 		Runtime rt = Runtime.getRuntime();
 		String[] commands = {"/bin/sh", "-c", "cd jsoup && mvn test"};
 		try {
