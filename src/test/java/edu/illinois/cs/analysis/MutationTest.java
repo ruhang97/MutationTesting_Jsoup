@@ -27,7 +27,8 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 public class MutationTest
 {
 	public enum Mutator {
-		ARITH_OP_DELETION(new ArithmeticOperatorDeletion());
+		ARITH_OP_REPLACE(new ArithmeticOperatorReplaceMutator());
+		// ARITH_OP_DELETION(new ArithmeticOperatorDeletion()),
 		// TRUE_RETURNS(new TrueReturnsMutator()),
 		// FalseReturnsMutator(),
 		// EmptyReturnsMutator(),
@@ -56,8 +57,8 @@ public class MutationTest
 		int countKill = 0;
 		for (Mutator mutator : Mutator.values()) {
 			System.out.println("Running mutator " + mutator.toString());
-			boolean killed = mutator.exec("nodes", "Document.java");
-			// boolean killed = mutator.exec("helper", "HttpConnection.java");
+			// boolean killed = mutator.exec("nodes", "Document.java");
+			boolean killed = mutator.exec("helper", "HttpConnection.java");
 			if (killed) countKill++;
 			count++;
 		}
