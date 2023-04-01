@@ -27,10 +27,11 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 public class MutationTest
 {
 	public enum Mutator {
-		TRUE_RETURNS(new TrueReturnsMutator()),
+		ARITH_OP_DELETION(new ArithmeticOperatorDeletion());
+		// TRUE_RETURNS(new TrueReturnsMutator()),
 		// FalseReturnsMutator(),
 		// EmptyReturnsMutator(),
-		CONDITIONALS_BOUNDARY(new ConditionalsBoundaryMutator());
+		// CONDITIONALS_BOUNDARY(new ConditionalsBoundaryMutator());
 
 		VoidVisitorAdapter modifier;
 
@@ -56,6 +57,7 @@ public class MutationTest
 		for (Mutator mutator : Mutator.values()) {
 			System.out.println("Running mutator " + mutator.toString());
 			boolean killed = mutator.exec("nodes", "Document.java");
+			// boolean killed = mutator.exec("helper", "HttpConnection.java");
 			if (killed) countKill++;
 			count++;
 		}
