@@ -31,7 +31,7 @@ public class MutationTest
 		// Instantiate the CodeModifier class that you will implement to perform
 		// the actual task. This is a visitor class according to the visitor
 		// pattern (one of the most important design patterns).
-		ConditionalsBoundaryMutator codeModifier = new ConditionalsBoundaryMutator();
+		VoidVisitorAdapter codeModifier = new FalseReturnsMutator();
 		boolean killed = modifyAndTryToKill(codeModifier, "nodes", "Document.java");
 		assertTrue(killed);
 	}
