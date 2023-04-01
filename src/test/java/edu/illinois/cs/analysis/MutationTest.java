@@ -27,11 +27,14 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 public class MutationTest
 {
 	public enum Mutator {
-		ARITH_OP_REPLACE(new ArithmeticOperatorReplaceMutator());
+		BITWISE(new BitwiseMutator()),
+		BITWISE2(new OBBN2()),
+		BITWISE3(new OBBN3());
+		// ARITH_OP_REPLACE(new ArithmeticOperatorReplaceMutator()),
 		// ARITH_OP_DELETION(new ArithmeticOperatorDeletion()),
 		// TRUE_RETURNS(new TrueReturnsMutator()),
-		// FalseReturnsMutator(),
-		// EmptyReturnsMutator(),
+		// FALSE_RETURNS(new FalseReturnsMutator()),
+		// EMPTY_RETURNS(new EmptyReturnsMutator()),
 		// CONDITIONALS_BOUNDARY(new ConditionalsBoundaryMutator());
 
 		VoidVisitorAdapter modifier;
@@ -62,9 +65,9 @@ public class MutationTest
 			if (killed) countKill++;
 			count++;
 		}
-		double score = countKill / count * 100.0;
-		System.out.println("\n\n******************mutation score = " + 
-							score + "******************");
+		double score = countKill * 100.0 / count;
+		System.out.println("\n\n****************** mutation score = " + 
+							score + "% ******************");
 		// assertTrue(killed);
 	}
 
@@ -108,7 +111,7 @@ public class MutationTest
 		saveMutantToFile(targetPath, cu);
 
 		boolean killed = mutantKilled();
-		System.out.println("Mutant Killed: " + Boolean.toString(killed));
+		System.out.println("Mutant Killed: " + Boolean.toString(killed) + "\n");
 		
 		sourceRoot = new SourceRoot(
 				CodeGenerationUtils.mavenModuleRoot(CodeParserTest.class)
@@ -167,16 +170,21 @@ public class MutationTest
 			// Read the output from the command
 			System.out.println("Here is the standard output of the command:\n");
 			String s = null;
+			String prev = null;
 			while ((s = stdInput.readLine()) != null) {
-				System.out.println(s);
 				if (findFailNum(s) > 0) {
+					if (prev != null) System.out.println(prev);
+					System.out.println(s);
 					System.out.println("********** Failure Found **********");
 					return true;
 				}
 				if (findErrorNum(s) > 0) {
+					if (prev != null) System.out.println(prev);
+					System.out.println(s);
 					System.out.println("********** Error Found **********");
 					return true;
 				}
+				prev = s;
 			}
 			
 			// Read any errors from the attempted command
