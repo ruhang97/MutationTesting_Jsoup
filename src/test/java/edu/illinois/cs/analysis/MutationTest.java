@@ -267,6 +267,9 @@ public class MutationTest
         return -1;
     }
 
+	/*
+     * Return a list of all .java files in a directory
+     */
 	public List<String> getAllFiles(String directoryPath) {
 		File folder = new File(directoryPath);
 		File[] listOfFiles = folder.listFiles();
@@ -283,6 +286,9 @@ public class MutationTest
 		return list;
 	}
 
+	/*
+     * Return a list of all directories in a directory
+     */
 	public List<String> getAllDir(String directoryPath) {
 		File folder = new File(directoryPath);
 		File[] listOfFiles = folder.listFiles();
