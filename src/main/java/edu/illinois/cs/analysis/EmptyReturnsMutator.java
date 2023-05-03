@@ -29,22 +29,22 @@ public class EmptyReturnsMutator extends VoidVisitorAdapter
 		
 		// satisfying the listed constriants rather than all possible methods
         Type returnType = n.getType();
-        System.out.println("[DEBUG]" + returnType.asString());
+        // System.out.println("[DEBUG]" + returnType.asString());
         if (returnType.asString().equals("String")) {
-            System.out.println("string altered");
+            // System.out.println("string altered");
             n.getBody().get().getStatements().clear();
             n.getBody().get().addStatement(new ReturnStmt(new StringLiteralExpr("")));
             
         } else if (returnType.asString().equals("int") || 
                     returnType.asString().equals("short") ||
                     returnType.asString().equals("long")) {
-            System.out.println("int altered");
+            // System.out.println("int altered");
             n.getBody().get().getStatements().clear();
             n.getBody().get().addStatement(new ReturnStmt("0"));
 
         } else if (returnType.asString().equals("double") || 
                     returnType.asString().equals("float")) {
-            System.out.println("double altered");
+            // System.out.println("double altered");
             n.getBody().get().getStatements().clear();
             n.getBody().get().addStatement(new ReturnStmt("0.0"));
         }

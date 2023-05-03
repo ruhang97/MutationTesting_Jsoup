@@ -27,15 +27,19 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 public class MutationTest
 {
 	public enum Mutator {
+		CONDITIONALS_BOUNDARY(new ConditionalsBoundaryMutator()),
+		NEGATE_COND(new NegateConditionalsMutator()),
+		VOID_METHOD(new VoidMethodCallsMutator()),
+		EMPTY_RETURNS(new EmptyReturnsMutator()),
+		FALSE_RETURNS(new FalseReturnsMutator()),
+		TRUE_RETURNS(new TrueReturnsMutator()),
+		NULL_RETURNS(new NullReturnsMutator()),
+		PRIMITIVE_RETURNS(new PrimitiveReturnsMutator()),
+		ARITH_OP_REPLACE(new ArithmeticOperatorReplaceMutator()),
+		ARITH_OP_DELETION(new ArithmeticOperatorDeletion()),
 		BITWISE(new BitwiseMutator()),
 		BITWISE2(new OBBN2()),
 		BITWISE3(new OBBN3());
-		// ARITH_OP_REPLACE(new ArithmeticOperatorReplaceMutator()),
-		// ARITH_OP_DELETION(new ArithmeticOperatorDeletion()),
-		// TRUE_RETURNS(new TrueReturnsMutator()),
-		// FALSE_RETURNS(new FalseReturnsMutator()),
-		// EMPTY_RETURNS(new EmptyReturnsMutator()),
-		// CONDITIONALS_BOUNDARY(new ConditionalsBoundaryMutator());
 
 		VoidVisitorAdapter modifier;
 
@@ -50,15 +54,10 @@ public class MutationTest
 
 	@Test
 	public void testJsoup() {
-		// Instantiate the CodeModifier class that you will implement to perform
-		// the actual task. This is a visitor class according to the visitor
-		// pattern (one of the most important design patterns).
-
-		// VoidVisitorAdapter codeModifier = new EmptyReturnsMutator();
-		// boolean killed = modifyAndTryToKill(codeModifier, "nodes", "Document.java");
 		int count = 0;
 		int countKill = 0;
 		for (Mutator mutator : Mutator.values()) {
+			System.out.println("----------------");
 			System.out.println("Running mutator " + mutator.toString());
 			// boolean killed = mutator.exec("nodes", "Document.java");
 			boolean killed = mutator.exec("helper", "HttpConnection.java");
@@ -66,9 +65,8 @@ public class MutationTest
 			count++;
 		}
 		double score = countKill * 100.0 / count;
-		System.out.println("\n\n****************** mutation score = " + 
+		System.out.println("\n****************** mutation score = " + 
 							score + "% ******************");
-		// assertTrue(killed);
 	}
 
 	/*
@@ -123,7 +121,7 @@ public class MutationTest
 		cu = sourceRoot.parse("org.jsoup." + module,
 				targetFile);
 
-		saveMutantToFile(targetPath, cu);
+		// saveMutantToFile(targetPath, cu);
 
 		// Approach 2: Copy from back code
 		try {
