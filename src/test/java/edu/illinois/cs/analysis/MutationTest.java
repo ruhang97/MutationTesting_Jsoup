@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,14 +58,39 @@ public class MutationTest
 	public void testJsoup() {
 		int count = 0;
 		int countKill = 0;
+		String directoryPath = "./jsoup/src/main/java/org/jsoup";
+
+		// // Mutate only one file
+		// for (Mutator mutator : Mutator.values()) {
+		// 	System.out.println("Running mutator " + mutator.toString());
+		// 	boolean killed = mutator.exec("helper", "HttpConnection.java");
+		// 	if (killed) countKill++;
+		// 	count++;
+		// }
+
+		// All Files
 		for (Mutator mutator : Mutator.values()) {
 			System.out.println("----------------");
 			System.out.println("Running mutator " + mutator.toString());
-			// boolean killed = mutator.exec("nodes", "Document.java");
-			boolean killed = mutator.exec("helper", "HttpConnection.java");
-			if (killed) countKill++;
-			count++;
+			for (String file : getAllFiles(directoryPath)) {
+				System.out.println("Mutating " + file);
+				boolean killed = mutator.exec("", file);
+				if (killed) countKill++;
+				count++;
+			}
+			
+			for (String module : getAllDir(directoryPath)) {
+				System.out.println("Checking module " + module);
+
+				for (String file : getAllFiles(directoryPath + "/" + module)) {
+					System.out.println("Mutating " + file);
+					boolean killed = mutator.exec(module, file);
+					if (killed) countKill++;
+					count++;
+				}
+			}
 		}
+
 		double score = countKill * 100.0 / count;
 		System.out.println("\n****************** mutation score = " + 
 							score + "% ******************");
@@ -93,6 +120,7 @@ public class MutationTest
 		CompilationUnit cu = sourceRoot.parse("org.jsoup." + module,
 				targetFile);
 
+		String originalContent = cu.toString();
 		// Apply our visitor class on the code representation for the given
 		// Java file. In this way, our visit function(s) can be automatically
 		// applied to all possible elements of the specified type(s).
@@ -115,23 +143,8 @@ public class MutationTest
 				CodeGenerationUtils.mavenModuleRoot(CodeParserTest.class)
 					.resolve("target/test-classes"));
 
+		restoreFile(targetPath, originalContent);
 
-		// Approach 1: Overwrite modified file
-		// cu = sourceRoot.parse("org.jsoup.nodes",
-		cu = sourceRoot.parse("org.jsoup." + module,
-				targetFile);
-
-		// saveMutantToFile(targetPath, cu);
-
-		// Approach 2: Copy from back code
-		try {
-			Runtime rt = Runtime.getRuntime();
-			String[] commands = {"/bin/sh", "-c", "echo 1"};	// TODO: copy from backup
-			Process proc = rt.exec(commands);
-		} catch (IOException e) {
-			System.out.println("[Error] file copy failed");
-			System.out.println(e);
-		}
 		return killed;
 	}
 
@@ -145,6 +158,18 @@ public class MutationTest
 		try {
 			FileWriter writer = new FileWriter(path);
             writer.write(cu.toString());
+			writer.close();
+			return true;
+        } catch (IOException e) {
+			System.out.println("IOException");
+			return false;
+		}
+	}
+
+	private static boolean restoreFile(String path, String content) {
+		try {
+			FileWriter writer = new FileWriter(path);
+            writer.write(content);
 			writer.close();
 			return true;
         } catch (IOException e) {
@@ -240,4 +265,39 @@ public class MutationTest
         return -1;
     }
 
+	/*
+     * Return a list of all .java files in a directory
+     */
+	public List<String> getAllFiles(String directoryPath) {
+		File folder = new File(directoryPath);
+		File[] listOfFiles = folder.listFiles();
+		LinkedList<String> list = new LinkedList<>();
+		
+		for (File file : listOfFiles) {
+			if (file.isFile()) {
+				String fileName = file.getName();
+				if (fileName.matches(".+\\.java$")) {
+					list.add(fileName);
+				}
+			}
+		}
+		return list;
+	}
+
+	/*
+     * Return a list of all directories in a directory
+     */
+	public List<String> getAllDir(String directoryPath) {
+		File folder = new File(directoryPath);
+		File[] listOfFiles = folder.listFiles();
+		LinkedList<String> list = new LinkedList<>();
+		
+		for (File file : listOfFiles) {
+			if (file.isDirectory()) {
+				String fileName = file.getName();
+				list.add(fileName);
+			}
+		}
+		return list;
+	}
 }
