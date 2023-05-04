@@ -3,6 +3,7 @@ package edu.illinois.cs.analysis;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
@@ -40,7 +41,9 @@ public class MutationTest
 		// TRUE_RETURNS(new TrueReturnsMutator()),
 		// NULL_RETURNS(new NullReturnsMutator()),
 		// PRIMITIVE_RETURNS(new PrimitiveReturnsMutator()),
-		NEGATION(new NegationMutator());
+		// REMOVE_CONDITIONALS(new RemoveConditionalsMutator()),
+		SWITCH(new ExperimentalSwitchMutator());
+		// NEGATION(new NegationMutator()),
 		// ARITH_OP_REPLACE(new ArithmeticOperatorReplaceMutator()),
 		// ARITH_OP_DELETION(new ArithmeticOperatorDeletion()),
 		// BITWISE(new BitwiseMutator()),
@@ -63,38 +66,41 @@ public class MutationTest
 		int count = 0;
 		int countKill = 0;
 		String directoryPath = "./jsoup/src/main/java/org/jsoup";
+		boolean allFiles = false;
 
-		// // Mutate only one file
-		// for (Mutator mutator : Mutator.values()) {
-		// 	System.out.println("Running mutator " + mutator.toString());
-		// 	boolean killed = mutator.exec("helper", "HttpConnection.java");
-		// 	if (killed) countKill++;
-		// 	count++;
-		// }
-
-		// All Files
-		for (Mutator mutator : Mutator.values()) {
-			System.out.println("----------------");
-			System.out.println("Running mutator " + mutator.toString());
-			for (String file : getAllFiles(directoryPath)) {
-				System.out.println("Mutating " + file);
-				boolean killed = mutator.exec("", file);
+		if (!allFiles) {
+			// Mutate only one file
+			for (Mutator mutator : Mutator.values()) {
+				System.out.println("Running mutator " + mutator.toString());
+				boolean killed = mutator.exec("nodes", "Entities.java");
 				if (killed) countKill++;
 				count++;
 			}
-			
-			for (String module : getAllDir(directoryPath)) {
-				System.out.println("Checking module " + module);
 
-				for (String file : getAllFiles(directoryPath + "/" + module)) {
+		} else {
+			// All Files
+			for (Mutator mutator : Mutator.values()) {
+				System.out.println("----------------");
+				System.out.println("Running mutator " + mutator.toString());
+				for (String file : getAllFiles(directoryPath)) {
 					System.out.println("Mutating " + file);
-					boolean killed = mutator.exec(module, file);
+					boolean killed = mutator.exec("", file);
 					if (killed) countKill++;
 					count++;
 				}
+				
+				for (String module : getAllDir(directoryPath)) {
+					System.out.println("Checking module " + module);
+
+					for (String file : getAllFiles(directoryPath + "/" + module)) {
+						System.out.println("Mutating " + file);
+						boolean killed = mutator.exec(module, file);
+						if (killed) countKill++;
+						count++;
+					}
+				}
 			}
 		}
-
 		double score = countKill * 100.0 / count;
 		System.out.println("\n****************** mutation score = " + 
 							score + "% ******************");
