@@ -29,19 +29,23 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 public class MutationTest
 {
 	public enum Mutator {
-		CONDITIONALS_BOUNDARY(new ConditionalsBoundaryMutator()),
-		NEGATE_COND(new NegateConditionalsMutator()),
-		VOID_METHOD(new VoidMethodCallsMutator()),
-		EMPTY_RETURNS(new EmptyReturnsMutator()),
-		FALSE_RETURNS(new FalseReturnsMutator()),
-		TRUE_RETURNS(new TrueReturnsMutator()),
-		NULL_RETURNS(new NullReturnsMutator()),
-		PRIMITIVE_RETURNS(new PrimitiveReturnsMutator()),
-		ARITH_OP_REPLACE(new ArithmeticOperatorReplaceMutator()),
-		ARITH_OP_DELETION(new ArithmeticOperatorDeletion()),
-		BITWISE(new BitwiseMutator()),
-		BITWISE2(new OBBN2()),
-		BITWISE3(new OBBN3());
+		// CONDITIONALS_BOUNDARY(new ConditionalsBoundaryMutator()),
+		// INCREMENTS(new IncrementsMutator()),
+		// INVERT_NEGATIVES(new InvertNegativesMutator()),
+		// MATH(new MathMutator()),
+		// NEGATE_COND(new NegateConditionalsMutator()),
+		// VOID_METHOD(new VoidMethodCallsMutator()),
+		// EMPTY_RETURNS(new EmptyReturnsMutator()),
+		// FALSE_RETURNS(new FalseReturnsMutator()),
+		// TRUE_RETURNS(new TrueReturnsMutator()),
+		// NULL_RETURNS(new NullReturnsMutator()),
+		// PRIMITIVE_RETURNS(new PrimitiveReturnsMutator()),
+		NEGATION(new NegationMutator());
+		// ARITH_OP_REPLACE(new ArithmeticOperatorReplaceMutator()),
+		// ARITH_OP_DELETION(new ArithmeticOperatorDeletion()),
+		// BITWISE(new BitwiseMutator()),
+		// BITWISE2(new OBBN2()),
+		// BITWISE3(new OBBN3());
 
 		VoidVisitorAdapter modifier;
 
