@@ -42,13 +42,14 @@ public class MutationTest
 		// NULL_RETURNS(new NullReturnsMutator()),
 		// PRIMITIVE_RETURNS(new PrimitiveReturnsMutator()),
 		// REMOVE_CONDITIONALS(new RemoveConditionalsMutator()),
-		SWITCH(new ExperimentalSwitchMutator());
+		// SWITCH(new ExperimentalSwitchMutator()),
 		// NEGATION(new NegationMutator()),
 		// ARITH_OP_REPLACE(new ArithmeticOperatorReplaceMutator()),
 		// ARITH_OP_DELETION(new ArithmeticOperatorDeletion()),
 		// BITWISE(new BitwiseMutator()),
 		// BITWISE2(new OBBN2()),
-		// BITWISE3(new OBBN3());
+		// BITWISE3(new OBBN3()),
+		UNARY_OP_INSERTION(new UnaryOpInsertionMutator());
 
 		VoidVisitorAdapter modifier;
 
