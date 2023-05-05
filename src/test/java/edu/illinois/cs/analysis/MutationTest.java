@@ -13,6 +13,13 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -95,7 +102,7 @@ public class MutationTest
 			// Mutate only one file
 			for (Mutator mutator : Mutator.values()) {
 				System.out.println("Running mutator " + mutator.toString());
-				Boolean killed = mutator.exec("nodes", "Tokenizer.java");
+				Boolean killed = mutator.exec("parser", "Tokeniser.java");
 					if (killed == null) {
 						continue;
 					}
@@ -118,9 +125,8 @@ public class MutationTest
 					}
 					if (killed) {
 						curMutKilled++;
-					} else {
-						curMutCount++;
 					}
+					curMutCount++;
 				}
 				
 				for (String module : getAllDir(directoryPath)) {
@@ -132,9 +138,8 @@ public class MutationTest
 						}
 						if (killed) {
 							curMutKilled++;
-						} else {
-							curMutCount++;
 						}
+						curMutCount++;
 					}
 				}
 
@@ -245,54 +250,70 @@ public class MutationTest
 	}
 
 	private static boolean mutantKilled() {
-		Runtime rt = Runtime.getRuntime();
-		String[] commands = {"/bin/sh", "-c", "cd jsoup && mvn test"};
+		final Runtime rt = Runtime.getRuntime();
+		final String[] commands = {"/bin/sh", "-c", "cd jsoup && mvn test"};
+	
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		Future<Boolean> future = executor.submit(new Callable<Boolean>() {
+			@Override
+			public Boolean call() {
+				try {
+					Process proc = rt.exec(commands);
+	
+					try (BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+						 BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()))) {
+	
+						String s;
+						String prev = null;
+						while ((s = stdInput.readLine()) != null) {
+							// System.out.println(s);
+							if (findFailNum(s) > 0) {
+								// if (prev != null) {
+								// 	System.out.println(prev);
+								// }
+								// System.out.println(s);
+								// System.out.println("********** Failure Found **********");
+								return true;
+							}
+							if (findErrorNum(s) > 0) {
+								// if (prev != null) {
+								// 	System.out.println(prev);
+								// }
+								// System.out.println(s);
+								// System.out.println("********** Error Found **********");
+								return true;
+							}
+							prev = s;
+						}
+						
+						// Read any errors from the attempted command
+						// System.out.println("Here is the standard error of the command (if any):\n");
+						while ((s = stdError.readLine()) != null) {
+							return true;
+						}
+	
+						int exitValue = proc.waitFor();
+						return exitValue != 0;
+					}
+				} catch (IOException | InterruptedException e) {
+					System.out.println("Exception executing command");
+					return true;
+				}
+			}
+		});
+	
+	
 		try {
-			Process proc = rt.exec(commands);
-			
-			BufferedReader stdInput = new BufferedReader(new 
-			InputStreamReader(proc.getInputStream()));
-			
-			BufferedReader stdError = new BufferedReader(new 
-			InputStreamReader(proc.getErrorStream()));
-			
-			// // Read the output from the command
-			// System.out.println("Here is the standard output of the command:\n");
-			String s = null;
-			String prev = null;
-			while ((s = stdInput.readLine()) != null) {
-				// System.out.println(s);
-				if (findFailNum(s) > 0) {
-					// if (prev != null) {
-					// 	System.out.println(prev);
-					// }
-					// System.out.println(s);
-					// System.out.println("********** Failure Found **********");
-					return true;
-				}
-				if (findErrorNum(s) > 0) {
-					// if (prev != null) {
-					// 	System.out.println(prev);
-					// }
-					// System.out.println(s);
-					// System.out.println("********** Error Found **********");
-					return true;
-				}
-				prev = s;
-			}
-			
-			// Read any errors from the attempted command
-			// System.out.println("Here is the standard error of the command (if any):\n");
-			while ((s = stdError.readLine()) != null) {
-				// System.out.println(s);
-				return true;
-			}
-		}
-		catch (IOException e) {
+			return future.get(1, TimeUnit.MINUTES);
+		} catch (TimeoutException e) {
+			System.out.println("Timeout executing command");
+			return true;
+		} catch (InterruptedException | ExecutionException e) {
 			System.out.println("Exception executing command");
 			return true;
+		} finally {
+			executor.shutdownNow();
 		}
-		return false;
 	}
 
 	/*
