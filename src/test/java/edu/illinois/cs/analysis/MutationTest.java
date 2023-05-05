@@ -19,10 +19,14 @@ import java.util.regex.Pattern;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.resolution.TypeSolver;
+import com.github.javaparser.symbolsolver.JavaSymbolSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 import com.github.javaparser.utils.CodeGenerationUtils;
 import com.github.javaparser.utils.SourceRoot;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
@@ -31,13 +35,23 @@ public class MutationTest
 {
 	public enum Mutator {
 		// CONDITIONALS_BOUNDARY(new ConditionalsBoundaryMutator()),
+		// CONSTANT_REPLACE1(new CRCR1());
+		// CONSTANT_REPLACE2(new CRCR2());
+		// CONSTANT_REPLACE3(new CRCR3());
+		// CONSTANT_REPLACE4(new CRCR4());
+		// CONSTANT_REPLACE5(new CRCR5());
+		// CONSTANT_REPLACE6(new CRCR6());
+		// CONSTRUCTOR_CALL(new ConstructorCalls());
 		// INCREMENTS(new IncrementsMutator()),
 		// INVERT_NEGATIVES(new InvertNegativesMutator()),
+		// INLINE_CONSTANT(new InlineConstantMutator()),
 		// MATH(new MathMutator()),
 		// NEGATE_COND(new NegateConditionalsMutator()),
 		// VOID_METHOD(new VoidMethodCallsMutator()),
+		NON_VOID_METHOD(new NonVoidMethodCallsMutator());
 		// EMPTY_RETURNS(new EmptyReturnsMutator()),
 		// FALSE_RETURNS(new FalseReturnsMutator()),
+		// REMOVE_INCREMENT(new RemoveIncrementsMutator()),
 		// TRUE_RETURNS(new TrueReturnsMutator()),
 		// NULL_RETURNS(new NullReturnsMutator()),
 		// PRIMITIVE_RETURNS(new PrimitiveReturnsMutator()),
@@ -49,7 +63,7 @@ public class MutationTest
 		// BITWISE(new BitwiseMutator()),
 		// BITWISE2(new OBBN2()),
 		// BITWISE3(new OBBN3()),
-		UNARY_OP_INSERTION(new UnaryOpInsertionMutator());
+		// UNARY_OP_INSERTION(new UnaryOpInsertionMutator());
 
 		VoidVisitorAdapter modifier;
 
@@ -117,13 +131,22 @@ public class MutationTest
 	 * 		false if not killed
 	 */
 	private static boolean modifyAndTryToKill(VoidVisitorAdapter codeModifier, String module, String targetFile) {
+		CombinedTypeSolver combinedTypeSolver = new CombinedTypeSolver();
+        combinedTypeSolver.add(new ReflectionTypeSolver());
+		
+		combinedTypeSolver.add(new JavaParserTypeSolver(CodeGenerationUtils.mavenModuleRoot(CodeParserTest.class)
+		.resolve("target/test-classes")));
+
+        JavaSymbolSolver symbolSolver = new JavaSymbolSolver(combinedTypeSolver);
+        ParserConfiguration parserConfiguration = new ParserConfiguration()
+                .setSymbolResolver(symbolSolver);
 		// Initialize the source root as the "target/test-classes" dir, which
 		// includes the test resource information (i.e., the source code info
 		// for Jsoup for this assignment) copied from src/test/resources
 		// during test execution
 		SourceRoot sourceRoot = new SourceRoot(
 				CodeGenerationUtils.mavenModuleRoot(CodeParserTest.class)
-					.resolve("target/test-classes"));
+					.resolve("target/test-classes"), parserConfiguration);
 
 		// Get the code representation for the specific java file using its
 		// package and name info
