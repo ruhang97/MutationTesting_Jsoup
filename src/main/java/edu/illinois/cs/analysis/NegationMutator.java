@@ -24,7 +24,7 @@ public class NegationMutator extends VoidVisitorAdapter
         String type = resolvedValueDeclaration.getType().describe();
         if (type.equals("int") || type.equals("float")) {
             n.setOperator(UnaryExpr.Operator.MINUS);
-            System.out.println("negation applied");
+            // System.out.println("negation applied");
         }
 	}
 }

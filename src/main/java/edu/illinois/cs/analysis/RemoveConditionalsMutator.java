@@ -25,7 +25,7 @@ public class RemoveConditionalsMutator extends VoidVisitorAdapter
             // a == b -> a == a (always true)
             System.out.print("\t**Mutated** Remove Conditionals: \"" + n.toString() + "\" -> \"");
             n.setRight(n.getLeft());
-            System.out.println(n.toString() + "\"");
+            // System.out.println(n.toString() + "\"");
         }
             
 	}

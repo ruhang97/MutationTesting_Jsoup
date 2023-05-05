@@ -22,10 +22,10 @@ public class ArithmeticOperatorDeletion extends VoidVisitorAdapter
 	public void visit(AssignExpr n, Object arg) {
 		super.visit(n, arg);
 		if (n.getValue() instanceof BinaryExpr) {
-            System.out.println("changing" + n.toString());
+            // System.out.println("changing" + n.toString());
             BinaryExpr be = (BinaryExpr) n.getValue();
             n.setValue(be.getLeft());
-            System.out.println("to" + n.toString());
+            // System.out.println("to" + n.toString());
         }
 	}
 }

@@ -39,13 +39,13 @@ public class ExperimentalSwitchMutator extends VoidVisitorAdapter
         for (SwitchEntry entry : entries) {
             if (!entry.getLabels().isEmpty()) {
                 // all not default -> default 
-                System.out.println("**mutated** Switch: " + entry.getLabels().get(0).toString());
+                // System.out.println("**mutated** Switch: " + entry.getLabels().get(0).toString());
                 entry.getLabels().clear();
             } else {
                 // replace default with a label
                 continue;
             }
         }
-        System.out.println(entries.toString());
+        // System.out.println(entries.toString());
 	}
 }

@@ -34,43 +34,51 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 public class MutationTest
 {
 	public enum Mutator {
-		// CONDITIONALS_BOUNDARY(new ConditionalsBoundaryMutator()),
-		// CONSTANT_REPLACE1(new CRCR1());
-		// CONSTANT_REPLACE2(new CRCR2());
-		// CONSTANT_REPLACE3(new CRCR3());
-		// CONSTANT_REPLACE4(new CRCR4());
-		// CONSTANT_REPLACE5(new CRCR5());
-		// CONSTANT_REPLACE6(new CRCR6());
-		// CONSTRUCTOR_CALL(new ConstructorCalls());
-		// INCREMENTS(new IncrementsMutator()),
-		// INVERT_NEGATIVES(new InvertNegativesMutator()),
-		// INLINE_CONSTANT(new InlineConstantMutator()),
-		// MATH(new MathMutator()),
-		// NEGATE_COND(new NegateConditionalsMutator()),
-		// VOID_METHOD(new VoidMethodCallsMutator()),
-		NON_VOID_METHOD(new NonVoidMethodCallsMutator());
-		// EMPTY_RETURNS(new EmptyReturnsMutator()),
-		// FALSE_RETURNS(new FalseReturnsMutator()),
-		// REMOVE_INCREMENT(new RemoveIncrementsMutator()),
-		// TRUE_RETURNS(new TrueReturnsMutator()),
-		// NULL_RETURNS(new NullReturnsMutator()),
-		// PRIMITIVE_RETURNS(new PrimitiveReturnsMutator()),
-		// REMOVE_CONDITIONALS(new RemoveConditionalsMutator()),
-		// SWITCH(new ExperimentalSwitchMutator()),
-		// NEGATION(new NegationMutator()),
-		// ARITH_OP_REPLACE(new ArithmeticOperatorReplaceMutator()),
-		// ARITH_OP_DELETION(new ArithmeticOperatorDeletion()),
-		// BITWISE(new BitwiseMutator()),
-		// BITWISE2(new OBBN2()),
-		// BITWISE3(new OBBN3()),
-		// UNARY_OP_INSERTION(new UnaryOpInsertionMutator());
+		CONDITIONALS_BOUNDARY(new ConditionalsBoundaryMutator()),
+		CONSTANT_REPLACE1(new CRCR1()),
+		CONSTANT_REPLACE2(new CRCR2()),
+		CONSTANT_REPLACE3(new CRCR3()),
+		CONSTANT_REPLACE4(new CRCR4()),
+		CONSTANT_REPLACE5(new CRCR5()),
+		CONSTANT_REPLACE6(new CRCR6()),
+		CONSTRUCTOR_CALL(new ConstructorCalls()),
+		INCREMENTS(new IncrementsMutator()),
+		INVERT_NEGATIVES(new InvertNegativesMutator()),
+		INLINE_CONSTANT(new InlineConstantMutator()),
+		MATH(new MathMutator()),
+		NEGATE_COND(new NegateConditionalsMutator()),
+		VOID_METHOD(new VoidMethodCallsMutator()),
+		NON_VOID_METHOD(new NonVoidMethodCallsMutator()),
+		EMPTY_RETURNS(new EmptyReturnsMutator()),
+		FALSE_RETURNS(new FalseReturnsMutator()),
+		REMOVE_INCREMENT(new RemoveIncrementsMutator()),
+		TRUE_RETURNS(new TrueReturnsMutator()),
+		NULL_RETURNS(new NullReturnsMutator()),
+		PRIMITIVE_RETURNS(new PrimitiveReturnsMutator()),
+		REMOVE_CONDITIONALS(new RemoveConditionalsMutator()),
+		SWITCH(new ExperimentalSwitchMutator()),
+		NEGATION(new NegationMutator()),
+		ARITH_OP_REPLACE(new ArithmeticOperatorReplaceMutator()),
+		ARITH_OP_DELETION(new ArithmeticOperatorDeletion()),
+		BITWISE(new BitwiseMutator()),
+		BITWISE2(new OBBN2()),
+		BITWISE3(new OBBN3()),
+		UNARY_OP_INSERTION(new UnaryOpInsertionMutator());
 
 		VoidVisitorAdapter modifier;
 
 		private Mutator(VoidVisitorAdapter modifier) {
 			this.modifier = modifier;
 		}
-		public boolean exec(String module, String targetFile) {
+
+		/*
+		* Run the mutator on the specified file
+		* Return:
+		* 		null if not valid mutant
+		* 		true if mutant killed
+		*		false if mutant not killed
+		*/
+		public Boolean exec(String module, String targetFile) {
 			return modifyAndTryToKill(this.modifier, module, targetFile);
 		}
 
@@ -81,15 +89,18 @@ public class MutationTest
 		int count = 0;
 		int countKill = 0;
 		String directoryPath = "./jsoup/src/main/java/org/jsoup";
-		boolean allFiles = false;
+		boolean allFiles = true;
 
 		if (!allFiles) {
 			// Mutate only one file
 			for (Mutator mutator : Mutator.values()) {
 				System.out.println("Running mutator " + mutator.toString());
-				boolean killed = mutator.exec("nodes", "Entities.java");
-				if (killed) countKill++;
-				count++;
+				Boolean killed = mutator.exec("nodes", "Entities.java");
+					if (killed == null) {
+						continue;
+					}
+					if (killed) countKill++;
+					count++;
 			}
 
 		} else {
@@ -97,23 +108,39 @@ public class MutationTest
 			for (Mutator mutator : Mutator.values()) {
 				System.out.println("----------------");
 				System.out.println("Running mutator " + mutator.toString());
+				int curMutCount = 0;
+				int curMutKilled = 0;
 				for (String file : getAllFiles(directoryPath)) {
 					System.out.println("Mutating " + file);
-					boolean killed = mutator.exec("", file);
-					if (killed) countKill++;
-					count++;
+					Boolean killed = mutator.exec("", file);
+					if (killed == null) {
+						continue;
+					}
+					if (killed) {
+						curMutKilled++;
+					} else {
+						curMutCount++;
+					}
 				}
 				
 				for (String module : getAllDir(directoryPath)) {
-					System.out.println("Checking module " + module);
-
 					for (String file : getAllFiles(directoryPath + "/" + module)) {
-						System.out.println("Mutating " + file);
-						boolean killed = mutator.exec(module, file);
-						if (killed) countKill++;
-						count++;
+						System.out.println("Mutating " + module + "/" + file);
+						Boolean killed = mutator.exec(module, file);
+						if (killed == null) {
+							continue;
+						}
+						if (killed) {
+							curMutKilled++;
+						} else {
+							curMutCount++;
+						}
 					}
 				}
+
+				System.out.println(mutator.toString() + "--Valid Mutant: " + String.valueOf(curMutCount) + " Mutants Killed: " + String.valueOf(curMutKilled));
+				count += curMutCount;
+				countKill += curMutKilled;
 			}
 		}
 		double score = countKill * 100.0 / count;
@@ -130,7 +157,7 @@ public class MutationTest
 	 * 		true if mutant killed
 	 * 		false if not killed
 	 */
-	private static boolean modifyAndTryToKill(VoidVisitorAdapter codeModifier, String module, String targetFile) {
+	private static Boolean modifyAndTryToKill(VoidVisitorAdapter codeModifier, String module, String targetFile) {
 		CombinedTypeSolver combinedTypeSolver = new CombinedTypeSolver();
         combinedTypeSolver.add(new ReflectionTypeSolver());
 		
@@ -160,6 +187,11 @@ public class MutationTest
 		// applied to all possible elements of the specified type(s).
 		codeModifier.visit(cu, null);
 		
+		if (cu.toString().equals(originalContent)) {
+			// System.out.println("Not Valid Mutant");
+			return null;
+		}
+
 		SourceRoot targetRoot = new SourceRoot(
 			CodeGenerationUtils.mavenModuleRoot(CodeParserTest.class)
 			// .resolve("jsoup/src/main/java"));
@@ -171,7 +203,7 @@ public class MutationTest
 		saveMutantToFile(targetPath, cu);
 
 		boolean killed = mutantKilled();
-		System.out.println("Mutant Killed: " + Boolean.toString(killed) + "\n");
+		// System.out.println("Mutant Killed: " + Boolean.toString(killed) + "\n");
 		
 		sourceRoot = new SourceRoot(
 				CodeGenerationUtils.mavenModuleRoot(CodeParserTest.class)
@@ -224,31 +256,36 @@ public class MutationTest
 			BufferedReader stdError = new BufferedReader(new 
 			InputStreamReader(proc.getErrorStream()));
 			
-			// Read the output from the command
-			System.out.println("Here is the standard output of the command:\n");
+			// // Read the output from the command
+			// System.out.println("Here is the standard output of the command:\n");
 			String s = null;
 			String prev = null;
 			while ((s = stdInput.readLine()) != null) {
+				// System.out.println(s);
 				if (findFailNum(s) > 0) {
-					if (prev != null) System.out.println(prev);
-					System.out.println(s);
-					System.out.println("********** Failure Found **********");
+					// if (prev != null) {
+					// 	System.out.println(prev);
+					// }
+					// System.out.println(s);
+					// System.out.println("********** Failure Found **********");
 					return true;
 				}
 				if (findErrorNum(s) > 0) {
-					if (prev != null) System.out.println(prev);
-					System.out.println(s);
-					System.out.println("********** Error Found **********");
+					// if (prev != null) {
+					// 	System.out.println(prev);
+					// }
+					// System.out.println(s);
+					// System.out.println("********** Error Found **********");
 					return true;
 				}
 				prev = s;
 			}
 			
-			// Read any errors from the attempted command
-			System.out.println("Here is the standard error of the command (if any):\n");
-			while ((s = stdError.readLine()) != null) {
-				System.out.println(s);
-			}
+			// // Read any errors from the attempted command
+			// System.out.println("Here is the standard error of the command (if any):\n");
+			// while ((s = stdError.readLine()) != null) {
+			// 	System.out.println(s);
+			// }
 		}
 		catch (IOException e) {
 			System.out.println("Exception executing command");

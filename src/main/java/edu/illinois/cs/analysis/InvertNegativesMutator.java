@@ -70,7 +70,7 @@ public class InvertNegativesMutator extends VoidVisitorAdapter
                     ReturnStmt newReturnStmt = new ReturnStmt(uExpr);
                     int index = body.getStatements().indexOf(returnStmt);
                     body.getStatements().set(index, returnStmt);
-                    System.out.println("inverted negatives");
+                    // System.out.println("inverted negatives");
                 }
             }
         }

@@ -14,7 +14,7 @@ public class RemoveIncrementsMutator extends VoidVisitorAdapter
 	public void visit(UnaryExpr n, Object arg) {
 		super.visit(n, arg);
         if (n.getOperator() == UnaryExpr.Operator.POSTFIX_INCREMENT || n.getOperator() == UnaryExpr.Operator.PREFIX_INCREMENT) {
-            System.out.println(n.toString());
+            // System.out.println(n.toString());
             n.replace(n.getExpression());
         }
 	}
