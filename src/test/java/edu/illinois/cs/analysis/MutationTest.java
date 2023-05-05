@@ -70,7 +70,9 @@ public class MutationTest
 		BITWISE(new BitwiseMutator()),
 		BITWISE2(new OBBN2()),
 		BITWISE3(new OBBN3()),
-		UNARY_OP_INSERTION(new UnaryOpInsertionMutator());
+		UOI1(new UOI1()),
+		UOI2(new UOI2()),
+		UOI3(new UOI3());
 
 		VoidVisitorAdapter modifier;
 
