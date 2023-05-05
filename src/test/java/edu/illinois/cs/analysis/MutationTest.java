@@ -95,7 +95,7 @@ public class MutationTest
 			// Mutate only one file
 			for (Mutator mutator : Mutator.values()) {
 				System.out.println("Running mutator " + mutator.toString());
-				Boolean killed = mutator.exec("nodes", "Entities.java");
+				Boolean killed = mutator.exec("nodes", "Tokenizer.java");
 					if (killed == null) {
 						continue;
 					}
@@ -281,11 +281,12 @@ public class MutationTest
 				prev = s;
 			}
 			
-			// // Read any errors from the attempted command
+			// Read any errors from the attempted command
 			// System.out.println("Here is the standard error of the command (if any):\n");
-			// while ((s = stdError.readLine()) != null) {
-			// 	System.out.println(s);
-			// }
+			while ((s = stdError.readLine()) != null) {
+				// System.out.println(s);
+				return true;
+			}
 		}
 		catch (IOException e) {
 			System.out.println("Exception executing command");
