@@ -6,25 +6,28 @@ import com.github.javaparser.ast.expr.NameExpr;
 
 import com.github.javaparser.ast.type.PrimitiveType;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
-
-import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
+import com.github.javaparser.resolution.types.ResolvedPrimitiveType;
+import com.github.javaparser.resolution.types.ResolvedType;
 
 public class NegationMutator extends VoidVisitorAdapter
 {
-	@Override
-	public void visit(UnaryExpr n, Object arg) {
+    @Override
+	public void visit(NameExpr n, Object arg) {
 		super.visit(n, arg);
-        Expression operand = n.getExpression();
-        if (!(operand instanceof NameExpr)) {
-            return;
-        }
+        try {
+            ResolvedType type = n.resolve().getType();
+            if (type.isPrimitive()) {
+                for (ResolvedType t : ResolvedPrimitiveType.getNumericPrimitiveTypes()) {
+                    if (type.asPrimitive() == t) {
+                        if (n.getParentNode().isPresent()) {
+                            n.getParentNode().get().replace(n, new UnaryExpr(n, UnaryExpr.Operator.MINUS));
+                        }
+                        break;
+                    }
+                }
+            }
+        } catch (Exception e) {
 
-        NameExpr nameExpr = (NameExpr) operand;
-        ResolvedValueDeclaration resolvedValueDeclaration = nameExpr.resolve();
-        String type = resolvedValueDeclaration.getType().describe();
-        if (type.equals("int") || type.equals("float")) {
-            n.setOperator(UnaryExpr.Operator.MINUS);
-            // System.out.println("negation applied");
         }
 	}
 }
