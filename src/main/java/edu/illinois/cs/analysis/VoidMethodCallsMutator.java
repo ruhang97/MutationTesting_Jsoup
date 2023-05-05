@@ -33,13 +33,10 @@ public class VoidMethodCallsMutator extends VoidVisitorAdapter
 	 * expressions in the given Java file
 	 */
 	@Override
-	public void visit(MethodDeclaration n, Object arg) {
+	public void visit(ExpressionStmt n, Object arg) {
 		super.visit(n, arg);
-        for (Statement stmt : n.getBody().get().getStatements()) {
-            if (!stmt.isReturnStmt() && stmt.getChildNodes().size() == 1 &&
-                stmt.getChildNodes().get(0).getClass().equals(MethodCallExpr.class)) {
-                    stmt.replace(new EmptyStmt());
-            }
-        }
+		if (n.getExpression().isMethodCallExpr()) {
+			n.replace(new EmptyStmt());
+		}
 	}
 }
