@@ -70,6 +70,7 @@ public class MutationTest
 		BITWISE(new BitwiseMutator()),
 		BITWISE2(new OBBN2()),
 		BITWISE3(new OBBN3()),
+		ROR1(new ROR1()),
 		UOI1(new UOI1()),
 		UOI2(new UOI2()),
 		UOI3(new UOI3());
@@ -209,7 +210,7 @@ public class MutationTest
 		String targetPath = targetRoot.getRoot() + "/" + module + "/" + targetFile;	// add module
 		saveMutantToFile(targetPath, cu);
 
-		boolean killed = mutantKilled();
+		boolean killed = tryToKillMutant();
 		// System.out.println("Mutant Killed: " + Boolean.toString(killed) + "\n");
 		
 		sourceRoot = new SourceRoot(
@@ -251,7 +252,7 @@ public class MutationTest
 		}
 	}
 
-	private static boolean mutantKilled() {
+	private static boolean tryToKillMutant() {
 		final Runtime rt = Runtime.getRuntime();
 		final String[] commands = {"/bin/sh", "-c", "cd jsoup && mvn test"};
 	
