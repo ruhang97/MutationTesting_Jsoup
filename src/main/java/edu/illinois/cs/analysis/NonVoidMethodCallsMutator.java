@@ -28,17 +28,24 @@ public class NonVoidMethodCallsMutator extends VoidVisitorAdapter
 	@Override
 	public void visit(ExpressionStmt n, Object arg) {
 		super.visit(n, arg);
-		// System.out.println(n.getExpression());
 		if (n.getExpression().isAssignExpr()) {
 			AssignExpr expr = n.getExpression().asAssignExpr();
 			if (expr.getValue().isMethodCallExpr()) {
-				expr.setValue(replace(expr.getValue().asMethodCallExpr()));
+				try {
+					expr.setValue(replace(expr.getValue().asMethodCallExpr()));
+				} catch (Exception e) {
+
+				}
 			}
 		} else if (n.getExpression().isVariableDeclarationExpr()) {
 			VariableDeclarationExpr expr = n.getExpression().asVariableDeclarationExpr();
 			for (VariableDeclarator vd : expr.getVariables()) {
 				if (vd.getInitializer().isPresent() && vd.getInitializer().get().isMethodCallExpr()) {
-					vd.setInitializer(replace(vd.getInitializer().get().asMethodCallExpr()));
+					try {
+						vd.setInitializer(replace(vd.getInitializer().get().asMethodCallExpr()));
+					} catch (Exception e) {
+	
+					}
                 }
 			}
 		}
@@ -48,7 +55,6 @@ public class NonVoidMethodCallsMutator extends VoidVisitorAdapter
 
 	private Expression replace(MethodCallExpr expr) {
 		ResolvedType type = expr.resolve().getReturnType();
-		// System.out.println(type.toString());
 		if (type.isPrimitive()) {
 			if (type.asPrimitive().isBoolean()) {
 				return new BooleanLiteralExpr(false);

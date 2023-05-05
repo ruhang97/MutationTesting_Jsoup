@@ -28,6 +28,9 @@ public class TrueReturnsMutator extends VoidVisitorAdapter
 	public void visit(MethodDeclaration n, Object arg) {
 		super.visit(n, arg);
 		
+		if (n.getBody().isEmpty()) {
+            return;
+        }
 		// satisfying the listed constriants rather than all possible methods
         Type returnType = n.getType();
         if (returnType instanceof PrimitiveType) {

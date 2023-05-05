@@ -58,10 +58,10 @@ public class MutationTest
 		NON_VOID_METHOD(new NonVoidMethodCallsMutator()),
 		EMPTY_RETURNS(new EmptyReturnsMutator()),
 		FALSE_RETURNS(new FalseReturnsMutator()),
-		REMOVE_INCREMENT(new RemoveIncrementsMutator()),
 		TRUE_RETURNS(new TrueReturnsMutator()),
 		NULL_RETURNS(new NullReturnsMutator()),
 		PRIMITIVE_RETURNS(new PrimitiveReturnsMutator()),
+		REMOVE_INCREMENT(new RemoveIncrementsMutator()),
 		REMOVE_CONDITIONALS(new RemoveConditionalsMutator()),
 		SWITCH(new ExperimentalSwitchMutator()),
 		NEGATION(new NegationMutator()),
@@ -104,7 +104,7 @@ public class MutationTest
 			// Mutate only one file
 			for (Mutator mutator : Mutator.values()) {
 				System.out.println("Running mutator " + mutator.toString());
-				Boolean killed = mutator.exec("parser", "Tokeniser.java");
+				Boolean killed = mutator.exec("", "Connection.java");
 					if (killed == null) {
 						continue;
 					}
@@ -120,7 +120,7 @@ public class MutationTest
 				int curMutCount = 0;
 				int curMutKilled = 0;
 				for (String file : getAllFiles(directoryPath)) {
-					System.out.println("Mutating " + file);
+					// System.out.println("Mutating " + file);
 					Boolean killed = mutator.exec("", file);
 					if (killed == null) {
 						continue;
@@ -133,7 +133,7 @@ public class MutationTest
 				
 				for (String module : getAllDir(directoryPath)) {
 					for (String file : getAllFiles(directoryPath + "/" + module)) {
-						System.out.println("Mutating " + module + "/" + file);
+						// System.out.println("Mutating " + module + "/" + file);
 						Boolean killed = mutator.exec(module, file);
 						if (killed == null) {
 							continue;
@@ -144,8 +144,8 @@ public class MutationTest
 						curMutCount++;
 					}
 				}
-
-				System.out.println(mutator.toString() + "--Valid Mutant: " + String.valueOf(curMutCount) + " Mutants Killed: " + String.valueOf(curMutKilled));
+				System.out.println("Valid Mutant: " + String.valueOf(curMutCount) + " Mutants Killed: " + String.valueOf(curMutKilled));
+				// System.out.println(mutator.toString() + "--Valid Mutant: " + String.valueOf(curMutCount) + " Mutants Killed: " + String.valueOf(curMutKilled));
 				count += curMutCount;
 				countKill += curMutKilled;
 			}
@@ -275,6 +275,7 @@ public class MutationTest
 								// }
 								// System.out.println(s);
 								// System.out.println("********** Failure Found **********");
+								proc.destroy();
 								return true;
 							}
 							if (findErrorNum(s) > 0) {
@@ -283,6 +284,7 @@ public class MutationTest
 								// }
 								// System.out.println(s);
 								// System.out.println("********** Error Found **********");
+								proc.destroy();
 								return true;
 							}
 							prev = s;
@@ -291,10 +293,12 @@ public class MutationTest
 						// Read any errors from the attempted command
 						// System.out.println("Here is the standard error of the command (if any):\n");
 						while ((s = stdError.readLine()) != null) {
+							proc.destroy();
 							return true;
 						}
 	
 						int exitValue = proc.waitFor();
+						proc.destroy();
 						return exitValue != 0;
 					}
 				} catch (IOException | InterruptedException e) {
@@ -306,7 +310,7 @@ public class MutationTest
 	
 	
 		try {
-			return future.get(1, TimeUnit.MINUTES);
+			return future.get(30, TimeUnit.SECONDS);
 		} catch (TimeoutException e) {
 			System.out.println("Timeout executing command");
 			return true;

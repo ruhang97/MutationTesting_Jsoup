@@ -23,7 +23,7 @@ public class RemoveConditionalsMutator extends VoidVisitorAdapter
 		super.visit(n, arg);
         if (n.getOperator() == BinaryExpr.Operator.EQUALS) {
             // a == b -> a == a (always true)
-            System.out.print("\t**Mutated** Remove Conditionals: \"" + n.toString() + "\" -> \"");
+            // System.out.print("\t**Mutated** Remove Conditionals: \"" + n.toString() + "\" -> \"");
             n.setRight(n.getLeft());
             // System.out.println(n.toString() + "\"");
         }
