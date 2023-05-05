@@ -12,19 +12,20 @@ import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
 public class NegationMutator extends VoidVisitorAdapter
 {
 	@Override
-	public void visit(UnaryExpr n, Object arg) {
+	public void visit(NameExpr n, Object arg) {
 		super.visit(n, arg);
-        Expression operand = n.getExpression();
-        if (!(operand instanceof NameExpr)) {
-            return;
-        }
+        // Expression operand = n.getExpression();
+        // if (!(operand instanceof NameExpr)) {
+        //     return;
+        // }
 
-        NameExpr nameExpr = (NameExpr) operand;
-        ResolvedValueDeclaration resolvedValueDeclaration = nameExpr.resolve();
-        String type = resolvedValueDeclaration.getType().describe();
+        // NameExpr nameExpr = (NameExpr) operand;
+        String type = n.resolve().getType().describe();
         if (type.equals("int") || type.equals("float")) {
-            n.setOperator(UnaryExpr.Operator.MINUS);
-            System.out.println("negation applied");
+            // n.setOperator(UnaryExpr.Operator.MINUS);
+            System.out.print("**mutated**" + n.toString() + " -> ");
+            n.replace(new UnaryExpr(n, UnaryExpr.Operator.MINUS));
+            System.out.println(n.toString());
         }
 	}
 }
